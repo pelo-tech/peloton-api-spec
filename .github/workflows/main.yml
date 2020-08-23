@@ -23,7 +23,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Get OpenAPI files
       run:  |
-        FILES="$(find . \( -iname "*openapi.yaml" -or -iname "*openapi.yml" \) -not -path "./.github/*")"
+        FILES="$(find . \( -iname "*-api.json" -or -iname "*-api.yaml" \) -not -path "./.github/*")"
         FILES_C="$(echo "$FILES" | sed '/^\s*$/d' | wc -l)"
         echo ::set-env name=FILE_LIST::$FILES
         echo ::set-env name=FILE_COUNT::$FILES_C
