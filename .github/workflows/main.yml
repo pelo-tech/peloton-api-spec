@@ -21,16 +21,17 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-
-    # Validate OpenAPI Spec
-    - name: Validate Swagger and OpenAPI using Swagger CLI
-      # You may pin to the exact commit or the version.
-      # uses: mbowman100/swagger-validator-action@492bf5b4c30b9439532bc0c9eff7154f70df02b3
-      uses: mbowman100/swagger-validator-action@1.5
+    - name: Get OpenAPI files
+      run:  |
+        FILES="$(find . \( -iname "*openapi.yaml" -or -iname "*openapi.yml" \) -not -path "./.github/*")"
+        FILES_C="$(echo "$FILES" | sed '/^\s*$/d' | wc -l)"
+        echo ::set-env name=FILE_LIST::$FILES
+        echo ::set-env name=FILE_COUNT::$FILES_C
+        echo "Found files:"
+        echo "$FILES"
+    - name: Validate OpenAPI Spec (swagger-validator)
+      uses: mbowman100/swagger-validator-action@master
+      if: env.FILE_COUNT != '0' # Comment out if you want it to fail if no files found
       with:
-        # Swagger/OpenAPI file(s) to validate
-        files: |
-          peloton-api.yaml
-          json-resolved/peloton-api.json
-          yaml-resolved/peloton-api.yaml
-
+        files: ${{ env.FILE_LIST }}
+    
