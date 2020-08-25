@@ -1898,6 +1898,9 @@ components:
           display_name: 
             type: "string"
             example: "Bookmarked"
+          instructor_id:
+            type: string
+            example: "2e57092bee334c8c8dcb9fe16ba5308c"
           type: 
             type: "string"
             example: "toggle"
@@ -1938,7 +1941,6 @@ components:
           type: "string"
           example: "following|follow_pending|none"
     
-
     RideSorts:
       properties: 
         value: 

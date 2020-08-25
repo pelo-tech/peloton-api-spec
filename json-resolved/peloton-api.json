@@ -1,0 +1,2790 @@
+{
+  "openapi" : "3.0.1",
+  "info" : {
+    "title" : "Unofficial Peloton API",
+    "description" : "This is an unofficial/unsupported peloton API that was documented through Swagger Inspector. Some URLs are protected, and you will be required to post to the Login endpoint to obtain a session ID which then gets sent in future requests as your peloton_session_id cookie.  You will also need a peloton-platform header for some of the newer requests, which for now should be set to 'web'",
+    "version" : "0.2.6"
+  },
+  "servers" : [ {
+    "url" : "https://api.onepeloton.com"
+  } ],
+  "tags" : [ {
+    "name" : "ride",
+    "description" : "Details regarding rides"
+  }, {
+    "name" : "users",
+    "description" : "Operations related to a Peloton User"
+  }, {
+    "name" : "public",
+    "description" : "Endpoints that do not require authentication"
+  }, {
+    "name" : "instructors",
+    "description" : "Operations related to Peloton Instructor"
+  }, {
+    "name" : "workouts",
+    "description" : "Get details about a workout"
+  }, {
+    "name" : "reference",
+    "description" : "Reference Data (Categories, Instructors, etc.)"
+  }, {
+    "name" : "favorites",
+    "description" : "Manage favorite/bookmnarked rides"
+  }, {
+    "name" : "reservations",
+    "description" : "Manage studio reservations"
+  } ],
+  "paths" : {
+    "/auth/login" : {
+      "post" : {
+        "tags" : [ "authentication" ],
+        "summary" : "Authenticates a user and creates a session",
+        "description" : "The session_id that results from this login will be needed as a 'peloton_session_id' cookie on subsequent non-public requests to the API.",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/body"
+              },
+              "examples" : {
+                "0" : {
+                  "value" : "{\n    \"username_or_email\": \"MyUserName\",\n    \"password\": \"passwd\"\n}"
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "User and Session Details",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AuthDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/check_session" : {
+      "get" : {
+        "tags" : [ "authentication", "users" ],
+        "responses" : {
+          "200" : {
+            "description" : "Session and Profile",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        } ]
+      }
+    },
+    "/api/user/{userId}/followers" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "summary" : "Get followers for a given user",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "b3f902e4b6c54777a73b61471ebed471"
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer"
+          },
+          "example" : 0
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer"
+          },
+          "example" : 20
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "List of followers for a given user",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProfileList"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        } ]
+      }
+    },
+    "/api/browse_categories" : {
+      "get" : {
+        "tags" : [ "reference" ],
+        "description" : "Get all workout categories",
+        "parameters" : [ {
+          "name" : "library_type",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "on_demand"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "List of categories",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_200"
+                },
+                "examples" : {
+                  "0" : {
+                    "value" : "{\"browse_categories\": [{\"id\": \"945f74385ce14e19bb554c6664a24a73\", \"name\": \"Meditation\", \"slug\": \"meditation\", \"list_order\": 2, \"icon_url\": \"https://browse-categories-images-prod.s3.amazonaws.com/c63f80f6f68747ba9a23c0c878a06479\", \"portal_image_url\": \"https://browse-categories-images-prod.s3.amazonaws.com/4a18caebf19341faaa29d4e23ac4c09c\"}, {\"id\": \"2e56ee670dd34cc9bbc95d3704ca90ad\", \"name\": \"Running\", \"slug\": \"running\", \"list_order\": 7, \"icon_url\": \"https://browse-categories-images-prod.s3.amazonaws.com/cb92005fe5e14531a359c3d31de9e5d0\", \"portal_image_url\": \"https://browse-categories-images-prod.s3.amazonaws.com/fffd66e282f04952be2a79c2a9221547\"}, ]}"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/instructor" : {
+      "get" : {
+        "tags" : [ "instructors", "reference" ],
+        "summary" : "Get a list of instructors.",
+        "description" : "Gets a list of instructors (Note that paging starts at 0)",
+        "parameters" : [ {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/InstructorList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/{userId}/following" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "description" : "Get User by ID",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "b3f902e4b6c54777a73b61471ebed471"
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "2"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResultList"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        } ]
+      }
+    },
+    "/api/user/{userId}/calendar" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "description" : "Get activity calendar for a given user",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "b3f902e4b6c54777a73b61471ebed471"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_200_1"
+                },
+                "examples" : {
+                  "0" : {
+                    "value" : "{\"months\": [{\"year\": 2020, \"month\": 4, \"active_days\": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}, {\"year\": 2020, \"month\": 3, \"active_days\": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]}, {\"year\": 2020, \"month\": 2, \"active_days\": [1, 2, 3, 4, 6, 9, 10, 11, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]}]}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        } ]
+      }
+    },
+    "/api/instructor/{instructorId}" : {
+      "get" : {
+        "tags" : [ "instructors" ],
+        "description" : "Get instructor by ID",
+        "parameters" : [ {
+          "name" : "instructorId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "a8c56f162c964e9392568bc13828a3fb"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_200_2"
+                },
+                "examples" : {
+                  "0" : {
+                    "value" : "{\"is_visible\": true, \"last_name\": \"Greenberg\", \"featured_profile\": true, \"list_order\": 6, \"music_bio\": \"\", \"id\": \"a8c56f162c964e9392568bc13828a3fb\", \"first_name\": \"Anna\", \"user_id\": \"026d817a66704ea6b5bc148ba0b803f7\", \"instagram_profile\": \"\", \"jumbotron_url_dark\": \"https://s3.amazonaws.com/workout-metric-images-prod/6081ded723014f1c9e89841efac9dfd7\", \"jumbotron_url\": null, \"spotify_playlist_uri\": \"spotify:user:onepeloton:playlist:4VFujVb67VlWFfSrz3BcWl\", \"web_instructor_list_gif_image_url\": null, \"strava_profile\": \"\", \"life_style_image_url\": \"https://s3.amazonaws.com/workout-metric-images-prod/b07a4ad3f0504d589f13d760ce010cd3\", \"instructor_hero_image_url\": \"https://s3.amazonaws.com/workout-metric-images-prod/7e14b96b609f4e47b497ef9b844a5b98\", \"username\": \"agreenberg\", \"bio\": \"When Anna first turned to yoga, she felt a switch turn on inside of her. As she built a deeper connection with her mind and body, she began accomplishing things she never knew possible. Moved to share the transformative properties of the practice with others, Anna dove head first into yoga. Anna has crafted a unique teaching style that uses movement and music to help her Members connect to the same healing properties of yoga that she has experienced over the years. Anna is a prominent teacher trainer, workshop leader and instructor in NYC.\", \"quote\": \"Look for balance but always be willing to fall.\", \"twitter_profile\": \"\", \"jumbotron_url_ios\": \"https://s3.amazonaws.com/workout-metric-images-prod/028db643b6d0412f898afe791a0d9d34\", \"background\": \"My classes combine heat building movement with precise, focused instruction for Members to find stability and space in their bodies and minds. Watching Members grow and thrive on the mat and in their lives is what inspires me to teach!\", \"film_link\": \"\", \"web_instructor_list_display_image_url\": \"https://s3.amazonaws.com/workout-metric-images-prod/a423930b36cc4794b1d1ea836f33768c\", \"facebook_fan_page\": \"\", \"name\": \"Anna Greenberg\", \"ios_instructor_list_display_image_url\": \"https://s3.amazonaws.com/workout-metric-images-prod/3c7b43033049475b9b3b95d67848c683\", \"bike_instructor_list_display_image_url\": null, \"is_filterable\": true, \"about_image_url\": \"https://s3.amazonaws.com/workout-metric-images-prod/76f3fbaa9c6448579f7d0d9bed8a5b53\", \"fitness_disciplines\": [\"meditation\", \"yoga\"], \"short_bio\": \"\\u201cLook for balance but always be willing to fall\\u201d\", \"ordered_q_and_as\": [[\"How Do You Motivate?\", \"I aim to inspire people to do their best and let go of the results. Yoga is not a competition or performance, it\\u2019s just for you (how great is that?). It\\u2019s a tool to strengthen your relationship with yourself.\"], [\"Outside of Peloton\", \"When I\\u2019m not standing on my hands, you can catch me traveling the world whenever, and wherever I can. I enjoy being in nature, hiking, biking and just walking around and taking it all in.\"], [\"\", \"\"]], \"image_url\": \"https://s3.amazonaws.com/workout-metric-images-prod/129eb1916178457fac5a39476a1211ce\", \"coach_type\": \"peloton_coach\"}"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user/{userNameOrId}" : {
+      "get" : {
+        "tags" : [ "users", "public" ],
+        "description" : "Gets Peloton user data. If a session ID is supplied, more data is returned, but being authenticated is optional for this request",
+        "parameters" : [ {
+          "name" : "userNameOrId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "DovOps"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector"
+          }
+        },
+        "security" : [ { }, {
+          "sessionCookie" : [ ]
+        } ]
+      }
+    },
+    "/api/user/{userId}/workouts" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "description" : "Auto generated using Swagger Inspector",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "b3f902e4b6c54777a73b61471ebed471"
+        }, {
+          "name" : "ride_id",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "joins",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "peloton.ride"
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "1"
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "0"
+        }, {
+          "name" : "sort_by",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "-created"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Scrollable Workout List",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WorkoutList"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        } ]
+      }
+    },
+    "/api/workout/{workoutId}" : {
+      "get" : {
+        "tags" : [ "workouts" ],
+        "description" : "Auto generated using Swagger Inspector",
+        "parameters" : [ {
+          "name" : "workoutId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "389bd6e86e2e4e49b6a501d875599cf9"
+        }, {
+          "name" : "joins",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "peloton,peloton.ride,peloton.ride.instructor,user"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Retrieves Workout Details",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/WorkoutDetails"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        } ]
+      }
+    },
+    "/api/workout/{workoutId}/performance_graph" : {
+      "get" : {
+        "tags" : [ "workouts" ],
+        "description" : "Auto generated using Swagger Inspector",
+        "parameters" : [ {
+          "name" : "workoutId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "389bd6e86e2e4e49b6a501d875599cf9"
+        }, {
+          "name" : "every_n",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "5"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector"
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        } ]
+      }
+    },
+    "/api/me" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "description" : "Get my record",
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector"
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/user/change_relationship" : {
+      "post" : {
+        "tags" : [ "users" ],
+        "description" : "Change relationship with another user (used for following/unfollowing)",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RelationshipRequest"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Relationship",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RelationshipResult"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/user/{userId}/challenges/current" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "description" : "Get list of current challenges",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "b3f902e4b6c54777a73b61471ebed471"
+        }, {
+          "name" : "has_joined",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "boolean"
+          },
+          "example" : "false"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector"
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/user/{userId}/achievements" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "description" : "Auto generated using Swagger Inspector",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "b3f902e4b6c54777a73b61471ebed471"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector"
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/user/{userId}/overview" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "description" : "Auto generated using Swagger Inspector",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "b3f902e4b6c54777a73b61471ebed471"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector"
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/favorites/create" : {
+      "post" : {
+        "tags" : [ "favorites" ],
+        "description" : "Bookmark a workout/ride",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/body_1"
+              },
+              "examples" : {
+                "0" : {
+                  "value" : "{\"ride_id\":\"55214456a1984c5885a087021e3f67b7\"}"
+                }
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "empty response means this was successful"
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/v2/user/subscriptions" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "description" : "Get My Subscriptions",
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector"
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/user/{userId}/settings" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "description" : "Auto generated using Swagger Inspector",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "b3f902e4b6c54777a73b61471ebed471"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserSettings"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/user/{userId}/referral_history" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "description" : "All referrals made by this user",
+        "parameters" : [ {
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "b3f902e4b6c54777a73b61471ebed471"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Coupon code and referrals made",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/reservation/{reservationId}" : {
+      "delete" : {
+        "tags" : [ "reservations" ],
+        "description" : "Auto generated using Swagger Inspector",
+        "parameters" : [ {
+          "name" : "reservationId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "bfabe9f63fe249dd8a2cb9c1a9e0af79"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_200_3"
+                },
+                "examples" : {
+                  "0" : {
+                    "value" : "{\"deleted\": true}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/peloton/{reservationId}" : {
+      "get" : {
+        "tags" : [ "reservations" ],
+        "description" : "Auto generated using Swagger Inspector",
+        "parameters" : [ {
+          "name" : "reservationId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "bfabe9f63fe249dd8a2cb9c1a9e0af79"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/inline_response_200_4"
+                },
+                "examples" : {
+                  "0" : {
+                    "value" : "{\"id\": \"bfabe9f63fe249dd8a2cb9c1a9e0af79\", \"ride_id\": \"55214456a1984c5885a087021e3f67b7\", \"server_time\": 1586527037, \"scheduled_start_time\": 1585305000, \"start_time\": 1585305000, \"end_time\": 1585306084, \"pedaling_start_time\": 1585305060, \"pedaling_end_time\": 1585305960, \"status\": \"COMPLETE\", \"countdown\": null, \"is_live\": true, \"is_studio\": false, \"is_encore\": true, \"seconds_since_start\": null, \"created_at\": 1585217846, \"total_workouts\": 339, \"is_complete\": true, \"total_home_reservations\": 504}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/ride/metadata_mappings" : {
+      "get" : {
+        "tags" : [ "ride" ],
+        "description" : "Get metadata mappings for available rides",
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/ride/filters" : {
+      "get" : {
+        "tags" : [ "ride" ],
+        "description" : "Gets filter options for rides",
+        "parameters" : [ {
+          "name" : "library_type",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "on_demand"
+        }, {
+          "name" : "browse_category",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "cycling"
+        }, {
+          "name" : "include_icon_images",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "boolean"
+          },
+          "example" : "true"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Filter options for rides",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "object"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/ride/{rideId}/recent_following_workouts" : {
+      "get" : {
+        "tags" : [ "ride" ],
+        "description" : "Auto generated using Swagger Inspector",
+        "parameters" : [ {
+          "name" : "rideId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "55214456a1984c5885a087021e3f67b7"
+        }, {
+          "name" : "joins",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "user"
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "10"
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "0"
+        }, {
+          "name" : "sort_by",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "-created"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector"
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/v2/ride/archived" : {
+      "get" : {
+        "tags" : [ "ride" ],
+        "description" : "Archived Rides",
+        "parameters" : [ {
+          "name" : "browse_category",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "cycling"
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "18"
+        }, {
+          "name" : "content_format",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "audio,video"
+        }, {
+          "name" : "page",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "0"
+        }, {
+          "name" : "sort_by",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "original_air_time"
+        }, {
+          "name" : "is_favorite_ride",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "boolean"
+          },
+          "example" : "true"
+        }, {
+          "name" : "desc",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "boolean"
+          },
+          "example" : "true"
+        }, {
+          "name" : "instructor_id",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "2e57092bee334c8c8dcb9fe16ba5308c"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector"
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/v3/ride/live" : {
+      "get" : {
+        "tags" : [ "ride" ],
+        "description" : "Get Live Rides",
+        "parameters" : [ {
+          "name" : "exclude_complete",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "boolean"
+          },
+          "example" : "true"
+        }, {
+          "name" : "content_provider",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "studio"
+        }, {
+          "name" : "browse_category",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "cycling"
+        }, {
+          "name" : "start",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "1585260000"
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "3"
+        }, {
+          "name" : "end",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "1586465999"
+        }, {
+          "name" : "exclude_live_in_studio_only",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "boolean"
+          },
+          "example" : "true"
+        }, {
+          "name" : "ignore_class_language_preferences",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "boolean"
+          },
+          "example" : "true"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector"
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/ride/{rideId}/details" : {
+      "get" : {
+        "tags" : [ "ride" ],
+        "description" : "Get Ride Details",
+        "parameters" : [ {
+          "name" : "rideId",
+          "in" : "path",
+          "required" : true,
+          "style" : "simple",
+          "explode" : false,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "55214456a1984c5885a087021e3f67b7"
+        }, {
+          "name" : "stream_source",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string"
+          },
+          "example" : "multichannel"
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Auto generated using Swagger Inspector"
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "UserSettings" : {
+        "type" : "object",
+        "properties" : {
+          "weight_unit" : {
+            "type" : "string"
+          },
+          "height_unit" : {
+            "type" : "string"
+          },
+          "auto_post_workout_to_strava" : {
+            "type" : "boolean"
+          },
+          "timezone" : {
+            "type" : "integer"
+          },
+          "block_explicit" : {
+            "type" : "boolean"
+          },
+          "class_language_preferences" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/UserSettings_class_language_preferences"
+            }
+          },
+          "privacy" : {
+            "$ref" : "#/components/schemas/UserSettings_privacy"
+          },
+          "closed_captions" : {
+            "$ref" : "#/components/schemas/UserSettings_closed_captions"
+          },
+          "distance_unit" : {
+            "type" : "string"
+          },
+          "auto_post_workout_to_fitbit" : {
+            "type" : "boolean"
+          }
+        },
+        "example" : {
+          "timezone" : 0,
+          "weight_unit" : "imperial",
+          "distance_unit" : "imperial",
+          "height_unit" : "imperial",
+          "block_explicit" : false,
+          "age" : true,
+          "bmi" : true,
+          "classmates_can_chat_me" : false,
+          "friends_can_chat_me" : true,
+          "gender" : true,
+          "height" : true,
+          "new_facebook_friend_email_notification" : true,
+          "new_follower_email_notification" : true,
+          "weight" : true,
+          "is_profile_private" : false,
+          "share_music_profile" : true,
+          "workout_maps_private" : false,
+          "auto_post_workout_to_fitbit" : false,
+          "auto_post_workout_to_strava" : true,
+          "enabled" : false,
+          "class_language_preferences" : [ {
+            "locale" : "en-US",
+            "locale_name" : "English",
+            "display_all_classes" : true,
+            "captions" : [ {
+              "locale" : "en-US",
+              "locale_name" : "English",
+              "enabled" : false
+            }, {
+              "locale" : "de-DE",
+              "locale_name" : "German",
+              "enabled" : false
+            } ]
+          }, {
+            "locale" : "de-DE",
+            "locale_name" : "German",
+            "display_all_classes" : true
+          } ]
+        }
+      },
+      "AuthDetails" : {
+        "properties" : {
+          "session_id" : {
+            "type" : "string",
+            "example" : "xxxxxxxxxxxxxx"
+          },
+          "user_id" : {
+            "type" : "string",
+            "example" : "yyyyyyyyyyyyyyy"
+          },
+          "user_data" : {
+            "$ref" : "#/components/schemas/AuthDetails_user_data"
+          },
+          "pubsub_session" : {
+            "type" : "object"
+          }
+        }
+      },
+      "ResultList" : {
+        "properties" : {
+          "limit" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 20
+          },
+          "page" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 0
+          },
+          "total" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 300
+          },
+          "count" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 20
+          },
+          "page_count" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 15
+          },
+          "show_previous" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "show_next" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "sort_by" : {
+            "type" : "string",
+            "example" : "-created_at,-pk"
+          }
+        }
+      },
+      "WorkoutList" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/ResultList"
+        }, {
+          "properties" : {
+            "data" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/components/schemas/Workout"
+              }
+            },
+            "next" : {
+              "$ref" : "#/components/schemas/WorkoutList_next"
+            },
+            "summary" : {
+              "type" : "object"
+            },
+            "aggregate_stats" : {
+              "type" : "array",
+              "items" : {
+                "type" : "object"
+              }
+            }
+          }
+        } ]
+      },
+      "RideDetails" : {
+        "properties" : {
+          "class_type_ids" : {
+            "type" : "array",
+            "example" : [ "f10471dcd6a34e5f8ed54eb634b5df19" ],
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "content_provider" : {
+            "type" : "string",
+            "example" : "peloton"
+          },
+          "content_format" : {
+            "type" : "string",
+            "example" : "video"
+          },
+          "description" : {
+            "type" : "string",
+            "example" : "Celebrating a diverse range of rock n’ roll, you’ll get into this popular themed ride."
+          },
+          "difficulty_estimate" : {
+            "type" : "number",
+            "format" : "float",
+            "example" : 8.6146
+          },
+          "overall_estimate" : {
+            "type" : "number",
+            "format" : "float",
+            "example" : 0.9895
+          },
+          "difficulty_rating_avg" : {
+            "type" : "number",
+            "format" : "float",
+            "example" : 8.6146
+          },
+          "difficulty_rating_count" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 1510
+          },
+          "duration" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 2700
+          },
+          "equipment_ids" : {
+            "type" : "array",
+            "example" : [ ],
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "equipment_tags" : {
+            "type" : "array",
+            "example" : [ ],
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "extra_images" : {
+            "type" : "array",
+            "example" : [ ],
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "fitness_discipline" : {
+            "type" : "string",
+            "example" : "cycling"
+          },
+          "fitness_discipline_display_name" : {
+            "type" : "string",
+            "example" : "Cycling"
+          },
+          "has_closed_captions" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "has_pedaling_metrics" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "home_peloton_id" : {
+            "type" : "string",
+            "example" : "ae75f9d011e84716a52774c878102153"
+          },
+          "id" : {
+            "type" : "string",
+            "example" : "5a2cd9201a494428aa0e1045ba4c7a51"
+          },
+          "image_url" : {
+            "type" : "string",
+            "example" : "https://s3.amazonaws.com/peloton-ride-images/c5aac521dc39e8dc315c171e3a3ab44882e1e588/img_1581021017_5cef688eb21547c9aa55b90b720829e0.png"
+          },
+          "instructor_id" : {
+            "type" : "string",
+            "example" : "4672db841da0495caf4b8f9cda405512"
+          },
+          "is_archived" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "is_closed_caption_shown" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "is_explicit" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "has_free_mode" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "is_live_in_studio_only" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "language" : {
+            "type" : "string",
+            "example" : "english"
+          },
+          "origin_locale" : {
+            "type" : "string",
+            "example" : "en-US"
+          },
+          "length" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 2885
+          },
+          "live_stream_id" : {
+            "type" : "string",
+            "example" : "5a2cd9201a494428aa0e1045ba4c7a51-live"
+          },
+          "location" : {
+            "type" : "string",
+            "example" : "uk"
+          },
+          "metrics" : {
+            "type" : "array",
+            "example" : [ "heart_rate", "cadence", "calories" ],
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "original_air_time" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1581014940
+          },
+          "overall_rating_avg" : {
+            "type" : "number",
+            "format" : "float",
+            "example" : 0.9895
+          },
+          "overall_rating_count" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 1816
+          },
+          "pedaling_start_offset" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 60
+          },
+          "pedaling_end_offset" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 2760
+          },
+          "pedaling_duration" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 2700
+          },
+          "rating" : {
+            "type" : "number",
+            "format" : "float",
+            "example" : 0
+          },
+          "ride_type_id" : {
+            "type" : "string",
+            "example" : "f10471dcd6a34e5f8ed54eb634b5df19"
+          },
+          "ride_type_ids" : {
+            "type" : "array",
+            "example" : [ "f10471dcd6a34e5f8ed54eb634b5df19" ],
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "scheduled_start_time" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1581015600
+          },
+          "series_id" : {
+            "type" : "string",
+            "example" : "0d82d171468a461c93ed700b299361f4"
+          },
+          "sold_out" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "studio_peloton_id" : {
+            "type" : "string",
+            "example" : "a85d1649665e48deba4cb940befe78c9"
+          },
+          "title" : {
+            "type" : "string",
+            "example" : "45 min Rock Ride"
+          },
+          "total_ratings" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 0
+          },
+          "total_in_progress_workouts" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 0
+          },
+          "total_workouts" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 3072
+          },
+          "vod_stream_id" : {
+            "type" : "string",
+            "example" : "5a2cd9201a494428aa0e1045ba4c7a51-vod"
+          },
+          "captions" : {
+            "type" : "array",
+            "example" : [ "en-US" ],
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "excluded_platforms" : {
+            "type" : "array"
+          }
+        }
+      },
+      "Workout" : {
+        "properties" : {
+          "created_at" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1586686754
+          },
+          "device_type" : {
+            "type" : "string",
+            "example" : "home_bike_v1"
+          },
+          "end_time" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1586687055
+          },
+          "fitness_discipline" : {
+            "type" : "string",
+            "example" : "cycling"
+          },
+          "has_pedaling_metrics" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "has_leaderboard_metrics" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "id" : {
+            "type" : "string",
+            "example" : "1960ef0e94a44d24bd5b8f8460973333"
+          },
+          "is_total_work_personal_record" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "metrics_type" : {
+            "type" : "string",
+            "example" : "cycling"
+          },
+          "name" : {
+            "type" : "string",
+            "example" : "Cycling Workout"
+          },
+          "peloton_id" : {
+            "type" : "string",
+            "example" : "7a77557fbaf6454e8445fcff4a415a6c"
+          },
+          "platform" : {
+            "type" : "string",
+            "example" : "home_bike"
+          },
+          "start_time" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1586686756
+          },
+          "strava_id" : {
+            "type" : "string",
+            "example" : "-1"
+          },
+          "status" : {
+            "type" : "string",
+            "example" : "COMPLETE"
+          },
+          "timezone" : {
+            "type" : "string",
+            "example" : "Asia/Amman"
+          },
+          "total_work" : {
+            "type" : "number",
+            "format" : "float",
+            "example" : 28373.63
+          },
+          "user_id" : {
+            "type" : "string",
+            "example" : "b3f902e4b6c54777a73b61471ebed471"
+          },
+          "workout_type" : {
+            "type" : "string",
+            "example" : "class"
+          },
+          "created" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1586686754
+          },
+          "device_time_created_at" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1586697554
+          }
+        }
+      },
+      "WorkoutDetails" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/Workout"
+        }, {
+          "properties" : {
+            "ride" : {
+              "$ref" : "#/components/schemas/RideDetails"
+            },
+            "achievement_templates" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/components/schemas/AchievementTemplate"
+              }
+            },
+            "leaderboard_rank" : {
+              "type" : "number",
+              "format" : "int32",
+              "example" : 91
+            },
+            "total_leaderboard_users" : {
+              "type" : "number",
+              "format" : "int32",
+              "example" : 2598
+            },
+            "ftp_info" : {
+              "$ref" : "#/components/schemas/WorkoutDetails_ftp_info"
+            },
+            "device_type_display_name" : {
+              "type" : "string",
+              "example" : "Studio"
+            }
+          }
+        } ]
+      },
+      "AchievementTemplate" : {
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "example" : "bac5aefabb2940ba8f0a170fc9d63bf0"
+          },
+          "name" : {
+            "type" : "string",
+            "example" : "Best Output"
+          },
+          "slug" : {
+            "type" : "string",
+            "example" : "best_output"
+          },
+          "image_url" : {
+            "type" : "string",
+            "example" : "https://s3.amazonaws.com/peloton-achievement-images-prod/b39a304e90bb484698a2f245473f18a6"
+          },
+          "description" : {
+            "type" : "string",
+            "example" : "Personal best output in a workout."
+          }
+        }
+      },
+      "InstructorList" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/ResultList"
+        }, {
+          "properties" : {
+            "data" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/components/schemas/Instructor"
+              }
+            },
+            "next" : {
+              "$ref" : "#/components/schemas/InstructorList_next"
+            },
+            "total_non_pending_followers" : {
+              "type" : "number",
+              "format" : "int32",
+              "example" : 300
+            }
+          }
+        } ]
+      },
+      "ProfileList" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/ResultList"
+        }, {
+          "properties" : {
+            "data" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/components/schemas/UserProfile"
+              }
+            }
+          }
+        } ]
+      },
+      "UserProfile" : {
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "example" : "79b62774ef6f4d79876c9426bddcaf7f"
+          },
+          "image_url" : {
+            "type" : "string",
+            "example" : "https://s3.amazonaws.com/peloton-profile-images/9b96196ee1c5af53a170ab588df84a2cb0cfa0bf/6d8c195ab6664031bf12314b04eebeb6"
+          },
+          "is_profile_private" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "location" : {
+            "type" : "string",
+            "example" : "Worthing, UK"
+          },
+          "total_followers" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 123
+          },
+          "total_following" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 219
+          },
+          "total_workouts" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 97
+          },
+          "username" : {
+            "type" : "string",
+            "example" : "Gregory121"
+          },
+          "authed_user_follows" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "relationship" : {
+            "$ref" : "#/components/schemas/Relationship"
+          },
+          "category" : {
+            "type" : "string",
+            "example" : "others"
+          },
+          "next" : {
+            "$ref" : "#/components/schemas/UserProfile_next"
+          },
+          "total_non_pending_followers" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 300
+          }
+        }
+      },
+      "Instructor" : {
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "example" : "79b62774ef6f4d79876c9426bddcaf7f"
+          },
+          "image_url" : {
+            "type" : "string",
+            "example" : "https://s3.amazonaws.com/peloton-profile-images/9b96196ee1c5af53a170ab588df84a2cb0cfa0bf/6d8c195ab6664031bf12314b04eebeb6"
+          },
+          "is_profile_private" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "location" : {
+            "type" : "string",
+            "example" : "Worthing, UK"
+          },
+          "total_followers" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 123
+          },
+          "total_following" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 219
+          },
+          "total_workouts" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 97
+          },
+          "username" : {
+            "type" : "string",
+            "example" : "Gregory121"
+          },
+          "authed_user_follows" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "relationship" : {
+            "$ref" : "#/components/schemas/Relationship"
+          },
+          "category" : {
+            "type" : "string",
+            "example" : "others"
+          }
+        }
+      },
+      "Relationship" : {
+        "required" : [ "me_to_user", "user_to_me" ],
+        "properties" : {
+          "me_to_user" : {
+            "type" : "string",
+            "example" : "none"
+          },
+          "user_to_me" : {
+            "type" : "string",
+            "example" : "following"
+          }
+        }
+      },
+      "RideFilter" : {
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "example" : "is_favorite_ride"
+          },
+          "display_name" : {
+            "type" : "string",
+            "example" : "Bookmarked"
+          },
+          "type" : {
+            "type" : "string",
+            "example" : "toggle"
+          },
+          "user_specific" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "values" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RideFilter_values"
+            }
+          }
+        }
+      },
+      "RelationshipRequest" : {
+        "properties" : {
+          "user_id" : {
+            "type" : "string",
+            "example" : "79b62774ef6f4d79876c9426bddcaf7f"
+          },
+          "action" : {
+            "type" : "string",
+            "example" : "follow|unfollow"
+          }
+        }
+      },
+      "RelationshipResult" : {
+        "properties" : {
+          "me_to_user" : {
+            "type" : "string",
+            "example" : "following|follow_pending|none"
+          },
+          "user_to_me" : {
+            "type" : "string",
+            "example" : "following|follow_pending|none"
+          }
+        }
+      },
+      "RideSorts" : {
+        "properties" : {
+          "value" : {
+            "$ref" : "#/components/schemas/RideSorts_value"
+          },
+          "display_name" : {
+            "type" : "string",
+            "example" : "New"
+          },
+          "slug" : {
+            "type" : "string",
+            "example" : "new"
+          }
+        }
+      },
+      "body" : {
+        "type" : "object",
+        "properties" : {
+          "password" : {
+            "type" : "string"
+          },
+          "username_or_email" : {
+            "type" : "string"
+          }
+        }
+      },
+      "inline_response_200" : {
+        "type" : "object",
+        "properties" : {
+          "browse_categories" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/inline_response_200_browse_categories"
+            }
+          }
+        }
+      },
+      "inline_response_200_1" : {
+        "type" : "object",
+        "properties" : {
+          "months" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/inline_response_200_1_months"
+            }
+          }
+        }
+      },
+      "inline_response_200_2" : {
+        "type" : "object",
+        "properties" : {
+          "facebook_fan_page" : {
+            "type" : "string"
+          },
+          "jumbotron_url_ios" : {
+            "type" : "string"
+          },
+          "about_image_url" : {
+            "type" : "string"
+          },
+          "bio" : {
+            "type" : "string"
+          },
+          "strava_profile" : {
+            "type" : "string"
+          },
+          "jumbotron_url" : { },
+          "quote" : {
+            "type" : "string"
+          },
+          "web_instructor_list_gif_image_url" : { },
+          "list_order" : {
+            "type" : "integer"
+          },
+          "is_filterable" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "first_name" : {
+            "type" : "string"
+          },
+          "instructor_hero_image_url" : {
+            "type" : "string"
+          },
+          "spotify_playlist_uri" : {
+            "type" : "string"
+          },
+          "ios_instructor_list_display_image_url" : {
+            "type" : "string"
+          },
+          "is_visible" : {
+            "type" : "boolean"
+          },
+          "short_bio" : {
+            "type" : "string"
+          },
+          "image_url" : {
+            "type" : "string"
+          },
+          "coach_type" : {
+            "type" : "string"
+          },
+          "last_name" : {
+            "type" : "string"
+          },
+          "instagram_profile" : {
+            "type" : "string"
+          },
+          "featured_profile" : {
+            "type" : "boolean"
+          },
+          "music_bio" : {
+            "type" : "string"
+          },
+          "twitter_profile" : {
+            "type" : "string"
+          },
+          "jumbotron_url_dark" : {
+            "type" : "string"
+          },
+          "web_instructor_list_display_image_url" : {
+            "type" : "string"
+          },
+          "user_id" : {
+            "type" : "string"
+          },
+          "background" : {
+            "type" : "string"
+          },
+          "ordered_q_and_as" : {
+            "type" : "array",
+            "items" : {
+              "type" : "array",
+              "items" : {
+                "type" : "string"
+              }
+            }
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "bike_instructor_list_display_image_url" : { },
+          "film_link" : {
+            "type" : "string"
+          },
+          "life_style_image_url" : {
+            "type" : "string"
+          },
+          "fitness_disciplines" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "username" : {
+            "type" : "string"
+          }
+        }
+      },
+      "body_1" : {
+        "type" : "object",
+        "properties" : {
+          "ride_id" : {
+            "type" : "string"
+          }
+        }
+      },
+      "inline_response_200_3" : {
+        "type" : "object",
+        "properties" : {
+          "deleted" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "inline_response_200_4" : {
+        "type" : "object",
+        "properties" : {
+          "pedaling_start_time" : {
+            "type" : "integer"
+          },
+          "ride_id" : {
+            "type" : "string"
+          },
+          "server_time" : {
+            "type" : "integer"
+          },
+          "is_encore" : {
+            "type" : "boolean"
+          },
+          "total_workouts" : {
+            "type" : "integer"
+          },
+          "end_time" : {
+            "type" : "integer"
+          },
+          "countdown" : { },
+          "created_at" : {
+            "type" : "integer"
+          },
+          "start_time" : {
+            "type" : "integer"
+          },
+          "seconds_since_start" : { },
+          "is_studio" : {
+            "type" : "boolean"
+          },
+          "total_home_reservations" : {
+            "type" : "integer"
+          },
+          "pedaling_end_time" : {
+            "type" : "integer"
+          },
+          "is_live" : {
+            "type" : "boolean"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "is_complete" : {
+            "type" : "boolean"
+          },
+          "scheduled_start_time" : {
+            "type" : "integer"
+          },
+          "status" : {
+            "type" : "string"
+          }
+        }
+      },
+      "UserSettings_captions" : {
+        "type" : "object",
+        "properties" : {
+          "locale_name" : {
+            "type" : "string"
+          },
+          "locale" : {
+            "type" : "string"
+          },
+          "enabled" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "UserSettings_class_language_preferences" : {
+        "type" : "object",
+        "properties" : {
+          "display_all_classes" : {
+            "type" : "boolean"
+          },
+          "locale_name" : {
+            "type" : "string"
+          },
+          "locale" : {
+            "type" : "string"
+          },
+          "captions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/UserSettings_captions"
+            }
+          }
+        }
+      },
+      "UserSettings_privacy" : {
+        "type" : "object",
+        "properties" : {
+          "is_profile_private" : {
+            "type" : "boolean"
+          },
+          "gender" : {
+            "type" : "boolean"
+          },
+          "share_music_profile" : {
+            "type" : "boolean"
+          },
+          "friends_can_chat_me" : {
+            "type" : "boolean"
+          },
+          "new_facebook_friend_email_notification" : {
+            "type" : "boolean"
+          },
+          "weight" : {
+            "type" : "boolean"
+          },
+          "new_follower_email_notification" : {
+            "type" : "boolean"
+          },
+          "classmates_can_chat_me" : {
+            "type" : "boolean"
+          },
+          "age" : {
+            "type" : "boolean"
+          },
+          "bmi" : {
+            "type" : "boolean"
+          },
+          "height" : {
+            "type" : "boolean"
+          },
+          "workout_maps_private" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "UserSettings_closed_captions" : {
+        "type" : "object",
+        "properties" : {
+          "language_preference" : { },
+          "enabled" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "AuthDetails_user_data_workout_counts" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "example" : "Bootcamp"
+          },
+          "slug" : {
+            "type" : "string",
+            "example" : "circuit"
+          },
+          "count" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 0
+          },
+          "icon_url" : {
+            "type" : "string",
+            "example" : "https://s3.amazonaws.com/static-cdn.pelotoncycle.com/workout-count-icons/zero-circuit2.png"
+          }
+        }
+      },
+      "AuthDetails_user_data_contract_agreements" : {
+        "type" : "object",
+        "properties" : {
+          "contract_type" : {
+            "type" : "string",
+            "example" : "privacy_policy"
+          },
+          "contract_id" : {
+            "type" : "string",
+            "example" : "aaaaaaaaaaaaaaa"
+          },
+          "contract_created_at" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1577458906
+          },
+          "bike_contract_url" : {
+            "type" : "string",
+            "example" : "https://s3.us-east-2.amazonaws.com/contract-terms-html/prod/en-us/privacy_1577458906.html"
+          },
+          "tread_contract_url" : {
+            "type" : "string",
+            "example" : "https://s3.us-east-2.amazonaws.com/contract-terms-html/prod/en-us/privacy_1577458906.html"
+          },
+          "agreed_at" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1577555736
+          }
+        }
+      },
+      "AuthDetails_user_data_quick_hits" : {
+        "required" : [ "incline_shortcuts", "quick_hits_enabled", "speed_shortcuts" ],
+        "type" : "object",
+        "properties" : {
+          "quick_hits_enabled" : {
+            "type" : "boolean",
+            "example" : true
+          }
+        }
+      },
+      "AuthDetails_user_data_paired_devices" : {
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "example" : "[TV] Samsung 9 Series (65)"
+          },
+          "paired_device_type" : {
+            "type" : "string",
+            "example" : "audio"
+          },
+          "serial_number" : {
+            "type" : "string",
+            "example" : "aa:bb:cc:dd:ee"
+          }
+        }
+      },
+      "AuthDetails_user_data" : {
+        "type" : "object",
+        "properties" : {
+          "block_explicit" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "created_at" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1531452705
+          },
+          "id" : {
+            "type" : "string",
+            "example" : "zzzzzzzzzzzzzzzz"
+          },
+          "image_url" : {
+            "type" : "string",
+            "example" : "https://s3.amazonaws.com/peloton-profile-images/b02556fa7be7e6c2c95e76ef723fc0ae1a6d4acc/e6c3bf90c568404a98687df0762cf2f7"
+          },
+          "is_profile_private" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "is_provisional" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "last_workout_at" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1586686754
+          },
+          "location" : {
+            "type" : "string",
+            "example" : "London #PZP #PUKC"
+          },
+          "total_followers" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 300
+          },
+          "total_following" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 383
+          },
+          "total_non_pedaling_metric_workouts" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 35
+          },
+          "total_pedaling_metric_workouts" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 265
+          },
+          "total_workouts" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 300
+          },
+          "username" : {
+            "type" : "string",
+            "example" : "DovOps"
+          },
+          "workout_counts" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AuthDetails_user_data_workout_counts"
+            }
+          },
+          "subscription_credits" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 0
+          },
+          "last_name" : {
+            "type" : "string",
+            "example" : "katz"
+          },
+          "default_max_heart_rate" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 178
+          },
+          "name" : {
+            "type" : "string",
+            "example" : "dov katz"
+          },
+          "height" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 69
+          },
+          "contract_agreements" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AuthDetails_user_data_contract_agreements"
+            }
+          },
+          "facebook_access_token" : {
+            "type" : "string",
+            "example" : "xxxxxxxxxxxxxxxxxx"
+          },
+          "is_complete_profile" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "email" : {
+            "type" : "string",
+            "example" : "dov@dovkatz.net"
+          },
+          "has_active_digital_subscription" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "customized_max_heart_rate" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 0
+          },
+          "created_country" : {
+            "type" : "string",
+            "example" : "US"
+          },
+          "estimated_cycling_ftp" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 222
+          },
+          "obfuscated_email" : {
+            "type" : "string",
+            "example" : "abc123"
+          },
+          "subscription_credits_used" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 0
+          },
+          "quick_hits" : {
+            "$ref" : "#/components/schemas/AuthDetails_user_data_quick_hits"
+          },
+          "cycling_ftp_source" : {
+            "type" : "string",
+            "example" : "ftp_workout_source"
+          },
+          "cycling_ftp" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 0
+          },
+          "paired_devices" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AuthDetails_user_data_paired_devices"
+            }
+          },
+          "v1_referrals_made" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 0
+          },
+          "total_pending_followers" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 0
+          },
+          "is_demo" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "has_active_device_subscription" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "facebook_id" : {
+            "type" : "string",
+            "example" : "12345678910111213"
+          },
+          "is_strava_authenticated" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "card_expires_at" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1709251200
+          },
+          "has_signed_waiver" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "default_heart_rate_zones" : {
+            "type" : "array",
+            "example" : [ 0, 115.7, 133.5, 151.29999999999998, 169.1 ],
+            "items" : {
+              "type" : "number"
+            }
+          },
+          "can_charge" : {
+            "type" : "boolean",
+            "example" : true
+          },
+          "cycling_ftp_workout_id" : {
+            "type" : "string",
+            "example" : "cb77bf303a2b4476bc6b39a5c1285217"
+          },
+          "first_name" : {
+            "type" : "string",
+            "example" : "dov"
+          },
+          "middle_initial" : {
+            "type" : "string",
+            "example" : ""
+          },
+          "is_fitbit_authenticated" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "weight" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 240
+          },
+          "phone_number" : {
+            "type" : "string",
+            "example" : "2015551212"
+          },
+          "birthday" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1234567890
+          },
+          "customized_heart_rate_zones" : {
+            "type" : "array",
+            "example" : [ ],
+            "items" : {
+              "type" : "number"
+            }
+          },
+          "cycling_workout_ftp" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 257
+          },
+          "referrals_made" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 0
+          },
+          "gender" : {
+            "type" : "string",
+            "example" : "male"
+          },
+          "member_groups" : {
+            "example" : [ ]
+          },
+          "is_internal_beta_tester" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "is_external_beta_tester" : {
+            "type" : "boolean",
+            "example" : false
+          }
+        }
+      },
+      "WorkoutList_next" : {
+        "required" : [ "created_at", "workout_id" ],
+        "type" : "object",
+        "properties" : {
+          "workout_id" : {
+            "type" : "string",
+            "example" : "d604b4393e7947989713bf70011f85c7"
+          },
+          "created_at" : {
+            "type" : "number",
+            "format" : "int64",
+            "example" : 1586080667
+          }
+        }
+      },
+      "WorkoutDetails_ftp_info" : {
+        "required" : [ "ftp", "ftp_source", "ftp_workout_id" ],
+        "type" : "object",
+        "properties" : {
+          "ftp" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 210
+          },
+          "ftp_source" : {
+            "type" : "string",
+            "example" : "ftp_workout_source"
+          },
+          "ftp_workout_id" : {
+            "type" : "string",
+            "example" : "5378797fb524417b80ff0e9d9bd3bd9a"
+          }
+        }
+      },
+      "InstructorList_next" : {
+        "type" : "object",
+        "properties" : {
+          "page" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 1
+          }
+        }
+      },
+      "UserProfile_next" : {
+        "required" : [ "page" ],
+        "type" : "object",
+        "properties" : {
+          "page" : {
+            "type" : "number",
+            "format" : "int32",
+            "example" : 1
+          }
+        }
+      },
+      "RideFilter_values" : {
+        "type" : "object",
+        "properties" : {
+          "value" : {
+            "type" : "string",
+            "example" : "true"
+          },
+          "display_name" : {
+            "type" : "string",
+            "example" : "Bookmarked"
+          },
+          "display_image_url" : {
+            "type" : "string",
+            "example" : "https://s3.amazonaws.com/static-cdn.pelotoncycle.com/filter-icons/bookmarked.png"
+          }
+        }
+      },
+      "RideSorts_value" : {
+        "required" : [ "desc", "sort" ],
+        "type" : "object",
+        "properties" : {
+          "sort" : {
+            "type" : "string",
+            "example" : "original_air_time"
+          },
+          "desc" : {
+            "type" : "boolean",
+            "example" : true
+          }
+        }
+      },
+      "inline_response_200_browse_categories" : {
+        "type" : "object",
+        "properties" : {
+          "icon_url" : {
+            "type" : "string"
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "list_order" : {
+            "type" : "integer"
+          },
+          "portal_image_url" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string"
+          },
+          "slug" : {
+            "type" : "string"
+          }
+        }
+      },
+      "inline_response_200_1_months" : {
+        "type" : "object",
+        "properties" : {
+          "month" : {
+            "type" : "integer"
+          },
+          "year" : {
+            "type" : "integer"
+          },
+          "active_days" : {
+            "type" : "array",
+            "items" : {
+              "type" : "integer"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes" : {
+      "sessionCookie" : {
+        "type" : "apiKey",
+        "name" : "peloton_session_id",
+        "in" : "cookie"
+      },
+      "pelotonPlatform" : {
+        "type" : "apiKey",
+        "name" : "peloton-platform",
+        "in" : "header"
+      }
+    }
+  }
+}

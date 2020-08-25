@@ -1,0 +1,37 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+    - name: Get OpenAPI files
+      run:  |
+        FILES="$(find . \( -iname "*-api.json" -or -iname "*-api.yaml" \) -not -path "./.github/*")"
+        FILES_C="$(echo "$FILES" | sed '/^\s*$/d' | wc -l)"
+        echo ::set-env name=FILE_LIST::$FILES
+        echo ::set-env name=FILE_COUNT::$FILES_C
+        echo "Found files:"
+        echo "$FILES"
+    - name: Validate OpenAPI Spec (swagger-validator)
+      uses: mbowman100/swagger-validator-action@master
+      if: env.FILE_COUNT != '0' # Comment out if you want it to fail if no files found
+      with:
+        files: ${{ env.FILE_LIST }}
+    
