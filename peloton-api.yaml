@@ -878,6 +878,7 @@ paths:
           schema:
             type: string
           example: original_air_time
+          description: "See /ride/filters - you can sort by original_air_time, trending, popularity, top_rated all decending or difficulty - ascending or descending (via desc param)"
         - name: is_favorite_ride
           in: query
           schema:
