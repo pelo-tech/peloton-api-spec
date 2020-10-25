@@ -6,7 +6,7 @@ info:
     the Login endpoint to obtain a session ID which then gets sent in future requests
     as your peloton_session_id cookie.  You will also need a peloton-platform header
     for some of the newer requests, which for now should be set to 'web'
-  version: 0.2.6
+  version: 0.2.7
 servers:
 - url: https://api.onepeloton.com
 tags:
@@ -186,8 +186,16 @@ paths:
         style: form
         explode: true
         schema:
-          type: string
-        example: "2"
+          type: integer
+        example: 0
+      - name: limit
+        in: query
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+        example: 20
       responses:
         "200":
           description: Auto generated using Swagger Inspector
@@ -527,7 +535,11 @@ paths:
         example: b3f902e4b6c54777a73b61471ebed471
       responses:
         "200":
-          description: Auto generated using Swagger Inspector
+          description: User Overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOverview'
       security:
       - sessionCookie: []
       - pelotonPlatform: []
@@ -816,6 +828,9 @@ paths:
         example: "0"
       - name: sort_by
         in: query
+        description: See /ride/filters - you can sort by original_air_time, trending,
+          popularity, top_rated all decending or difficulty - ascending or descending
+          (via desc param)
         required: false
         style: form
         explode: true
@@ -958,6 +973,23 @@ paths:
       - pelotonPlatform: []
 components:
   schemas:
+    UserOverview:
+      type: object
+      properties:
+        id:
+          type: string
+        workout_counts:
+          $ref: '#/components/schemas/UserOverview_workout_counts'
+        personal_records:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserOverview_personal_records'
+        streaks:
+          $ref: '#/components/schemas/UserOverview_streaks'
+        achievements:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserOverview_achievements'
     UserSettings:
       type: object
       properties:
@@ -1501,6 +1533,9 @@ components:
         display_name:
           type: string
           example: Bookmarked
+        instructor_id:
+          type: string
+          example: 2e57092bee334c8c8dcb9fe16ba5308c
         type:
           type: string
           example: toggle
@@ -1680,6 +1715,84 @@ components:
         scheduled_start_time:
           type: integer
         status:
+          type: string
+    UserOverview_workout_counts_workouts:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        count:
+          type: integer
+        icon_url:
+          type: string
+        workout_name:
+          type: string
+    UserOverview_workout_counts:
+      type: object
+      properties:
+        total_workouts:
+          type: integer
+        workouts:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserOverview_workout_counts_workouts'
+    UserOverview_records:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        value:
+          type: integer
+        raw_value:
+          type: number
+        unit:
+          type: string
+        unit_slug:
+          type: string
+        workout_id:
+          type: string
+        workout_date:
+          type: string
+    UserOverview_personal_records:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        first_workout_date:
+          type: string
+        reset_date:
+          type: string
+        records:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserOverview_records'
+    UserOverview_streaks:
+      type: object
+      properties:
+        current_weekly:
+          type: integer
+        best_weekly:
+          type: integer
+        start_date_of_current_weekly:
+          type: integer
+    UserOverview_achievements:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        slug:
+          type: string
+        image_url:
+          type: string
+        description:
           type: string
     UserSettings_captions:
       type: object
