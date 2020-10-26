@@ -3,7 +3,7 @@
   "info" : {
     "title" : "Unofficial Peloton API",
     "description" : "This is an unofficial/unsupported peloton API that was documented through Swagger Inspector. Some URLs are protected, and you will be required to post to the Login endpoint to obtain a session ID which then gets sent in future requests as your peloton_session_id cookie.  You will also need a peloton-platform header for some of the newer requests, which for now should be set to 'web'",
-    "version" : "0.2.7"
+    "version" : "0.2.8"
   },
   "servers" : [ {
     "url" : "https://api.onepeloton.com"
@@ -524,6 +524,53 @@
         "responses" : {
           "200" : {
             "description" : "Auto generated using Swagger Inspector"
+          }
+        },
+        "security" : [ {
+          "sessionCookie" : [ ]
+        }, {
+          "pelotonPlatform" : [ ]
+        } ]
+      }
+    },
+    "/api/user/search" : {
+      "get" : {
+        "tags" : [ "users" ],
+        "description" : "Search for peloton members as you would on the app/bike",
+        "parameters" : [ {
+          "name" : "user_query",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "string",
+            "description" : "Text to search",
+            "example" : "DovOps"
+          }
+        }, {
+          "name" : "limit",
+          "in" : "query",
+          "required" : false,
+          "style" : "form",
+          "explode" : true,
+          "schema" : {
+            "type" : "integer",
+            "description" : "Number of results to return",
+            "example" : 40,
+            "default" : 40
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Search Results",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ProfileList"
+                }
+              }
+            }
           }
         },
         "security" : [ {
