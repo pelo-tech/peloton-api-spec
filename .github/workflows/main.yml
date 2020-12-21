@@ -25,8 +25,8 @@ jobs:
       run:  |
         FILES="$(find . \( -iname "*-api.json" -or -iname "*-api.yaml" \) -not -path "./.github/*")"
         FILES_C="$(echo "$FILES" | sed '/^\s*$/d' | wc -l)"
-        echo ::set-env name=FILE_LIST::$FILES
-        echo ::set-env name=FILE_COUNT::$FILES_C
+        echo name=FILE_LIST::$FILES    >> $GITHUB_ENV
+        echo name=FILE_COUNT::$FILES_C >> $GITHUB_ENV
         echo "Found files:"
         echo "$FILES"
     - name: Validate OpenAPI Spec (swagger-validator)
