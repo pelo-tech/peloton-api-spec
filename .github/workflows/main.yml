@@ -24,14 +24,12 @@ jobs:
     - name: Get OpenAPI files
       run:  |
         FILES="$(find . \( -iname "*-api.json" -or -iname "*-api.yaml" \) -not -path "./.github/*")"
-        FILES_C="$(echo "$FILES" | sed '/^\s*$/d' | wc -l)"
-        echo name=FILE_LIST::$FILES    >> $GITHUB_ENV
-        echo name=FILE_COUNT::$FILES_C >> $GITHUB_ENV
+        echo "files=$FILES" >> $GITHUB_ENV
         echo "Found files:"
         echo "$FILES"
     - name: Validate OpenAPI Spec (swagger-validator)
       uses: mbowman100/swagger-validator-action@master
       #if: env.FILE_COUNT != '0' # Comment out if you want it to fail if no files found
       with:
-        files: ${{ $FILE_LIST }}
+        files: $files 
     
