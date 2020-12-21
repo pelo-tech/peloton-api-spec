@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Unofficial Peloton API
   description: "This is an unofficial/unsupported peloton API that was documented through Swagger Inspector. Some URLs are protected, and you will be required to post to the Login endpoint to obtain a session ID which then gets sent in future requests as your peloton_session_id cookie.  You will also need a peloton-platform header for some of the newer requests, which for now should be set to 'web'"
-  version: 0.2.6
+  version: 0.2.9
 servers:
   - url: "https://api.onepeloton.com"
 paths:
@@ -51,7 +51,33 @@ paths:
         - authentication
         - users
                 
-                
+  /api/user/{userId}/image_upload_url:
+    get:
+      security:
+        - sessionCookie: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: b3f902e4b6c54777a73b61471ebed471
+      responses:
+        "200":
+          description: URL of image upload and new image on S3.
+          content: 
+            application/json:
+              schema:
+                type: object
+                properties:
+                  upload_url: 
+                    type: string
+                  new_image_url:
+                    type: string
+      tags:
+        - users
+      summary: Get upload URL to S3 and URL of uploaded image. You do a PUT to this upload_url with the image to upload.
+      
   /api/user/{userId}/followers:
     get:
       security:
@@ -171,11 +197,23 @@ paths:
           schema:
             type: string
           example: b3f902e4b6c54777a73b61471ebed471
-        - name: page
+        - name: joins
+          required: false
           in: query
           schema:
             type: string
-          example: "2"
+        - name: page
+          required: false
+          in: query
+          schema:
+            type: integer
+          example: 0
+        - name: limit
+          required: false
+          in: query
+          schema:
+            type: integer
+          example: 20
       responses:
         "200":
           description: Auto generated using Swagger Inspector
@@ -185,7 +223,30 @@ paths:
                 $ref: "#/components/schemas/ResultList"
       tags:
         - users
-
+  /api/user/{userId}/facebook_friends:
+    get:
+      description: Get Facebook friends for user by ID
+      security:
+        - sessionCookie: []
+        - pelotonPlatform: []
+        
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: b3f902e4b6c54777a73b61471ebed471
+        
+      responses:
+        "200":
+          description: List of users with facebook profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FacebookProfileList"
+      tags:
+        - users
   /api/user/{userId}/calendar:
     get:
       description: Get activity calendar for a given user
@@ -489,6 +550,10 @@ paths:
           schema:
             type: string
           example: "5"
+        - name: joins
+          in: query
+          schema:
+            type: string
       tags:
         - workouts
       responses:
@@ -506,6 +571,36 @@ paths:
       responses:
         "200":
           description: Auto generated using Swagger Inspector
+
+  /api/user/search:
+    get:
+      description: Search for peloton members as you would on the app/bike
+      security:
+        - sessionCookie: []
+        - pelotonPlatform: []
+      tags:
+        - users
+      parameters:
+        - name: user_query
+          in: query
+          schema:
+            type: string
+            example: DovOps
+            description: Text to search
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            example: 40
+            default: 40
+            description: Number of results to return 
+      responses:
+        "200":
+          description: Search Results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProfileList"
   /api/user/change_relationship:
     post:
       description: Change relationship with another user (used for following/unfollowing)
@@ -580,9 +675,19 @@ paths:
           schema:
             type: string
           example: "b3f902e4b6c54777a73b61471ebed471"
+        - name: version
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
       responses:
         "200":
-          description: Auto generated using Swagger Inspector
+          description: User Overview
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserOverview"
       tags:
         - users
         
@@ -664,6 +769,37 @@ paths:
       tags:
         - users
         
+  /api/reservation:
+    post: 
+      description: Count me in for an upcoming live or encore ride.
+      summary: Reserve a spot in an upcoming scheduled ride
+      security:
+        - sessionCookie: []
+        - pelotonPlatform: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                  example: "b3f902e4b6c54777a73b61471ebed471"
+                peloton_id:
+                  type: string
+                  example: "ea3849f5029449b685da71daab1d0272"
+                location:
+                  type: string
+                  example: "remote"
+      responses:
+        "200":
+          description: Reservation Object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reservation"
+      tags: 
+        - reservations
   /api/reservation/{reservationId}:
     delete:
       description: Auto generated using Swagger Inspector
@@ -725,12 +861,16 @@ paths:
                     type: integer
                   end_time:
                     type: integer
-                  countdown: {}
+                  countdown:
+                    type: integer
                   created_at:
                     type: integer
+                  is_session: 
+                    type: boolean
                   start_time:
                     type: integer
-                  seconds_since_start: {}
+                  seconds_since_start: 
+                    type: integer
                   is_studio:
                     type: boolean
                   total_home_reservations:
@@ -746,6 +886,8 @@ paths:
                   scheduled_start_time:
                     type: integer
                   status:
+                    type: string
+                  join_token:
                     type: string
               examples:
                 "0":
@@ -1006,6 +1148,91 @@ components:
       in: "header"
       name: "peloton-platform"
   schemas:
+    UserOverview:
+      type: object
+      properties:
+        id: 
+          type: string
+        workout_counts: 
+          type: object
+          properties:
+            total_workouts: 
+              type: integer
+            workouts:
+              type: array
+              items:
+                type: object
+                properties:
+                  name: 
+                    type: string
+                  slug: 
+                    type: string
+                  count: 
+                    type: integer
+                  icon_url: 
+                    type: string
+                  workout_name: 
+                    type: string
+        personal_records:
+          type: array
+          items: 
+            type: object
+            properties:
+              name: 
+                type: string
+              slug: 
+                type: string
+              first_workout_date:
+                type: string
+              reset_date:
+                type: string
+              records:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    slug: 
+                      type: string
+                    value:
+                      type: integer
+                    raw_value:
+                      type: number
+                    unit:
+                      type: string
+                    unit_slug:
+                      type: string
+                    workout_id:
+                      type: string
+                    workout_date:
+                      type: string
+        streaks:
+          type: object
+          properties:
+            current_weekly:
+              type: integer
+            best_weekly:
+              type: integer
+            start_date_of_current_weekly: 
+              type: integer
+        achievements:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              name:
+                type: string
+              slug:
+                type: string
+              image_url:
+                type: string
+              description:
+                type: string
+                      
+            
     UserSettings:
       type: object
       properties:
@@ -1785,6 +2012,7 @@ components:
               type: "number"
               format: "int32"
               example: 300
+              
     ProfileList:
       allOf:
         - $ref: "#/components/schemas/ResultList"
@@ -1793,6 +2021,16 @@ components:
               type: "array"
               items: 
                 $ref: "#/components/schemas/UserProfile"
+                
+    FacebookProfileList:
+      allOf:
+        - $ref: "#/components/schemas/ResultList"
+        - properties:
+            data: 
+              type: "array"
+              items: 
+                $ref: "#/components/schemas/FacebookUserProfile" 
+                
     UserProfile:
       properties: 
         id: 
@@ -1843,6 +2081,15 @@ components:
           type: "number"
           format: "int32"
           example: 300
+          
+    FacebookUserProfile:
+      allOf: 
+        - $ref: "#/components/schemas/UserProfile"
+        - properties:
+            facebook_name: 
+              type: "string"
+
+      
     Instructor:
       properties: 
         id: 
@@ -1891,6 +2138,7 @@ components:
         user_to_me: 
           type: "string"
           example: "following"
+          
     RideFilter:
         properties: 
           name: 
@@ -1962,3 +2210,18 @@ components:
         slug: 
           type: "string"
           example: "new"
+          
+    Reservation:
+      properties: 
+        id:
+          type: string
+          example: "ea3849f5029449b685da71daab1d0272"
+        join_token:
+          type: string
+          example: "eyJob21lX3BlbG90b25faWQiOiAiZWEzODQ5ZjUwMjk0NDliNjg1ZGE3MWRhYWIxZDAyNzIiLCAicmlkZV....."
+        peloton_id:
+          type: string
+          example: "ea3849f5029449b685da71daab1d0272"
+        user_id:
+          type: string
+          example: "b3f902e4b6c54777a73b61471ebed471"
