@@ -22,16 +22,16 @@ jobs:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
     - name: Get OpenAPI files
+      id: getfiles
       run:  |
-        FILES="$(find . \( -iname "*-api.json" -or -iname "*-api.yaml" \) -not -path "./.github/*")"
-        FILES_C="$(echo "$FILES" | sed '/^\s*$/d' | wc -l)"
-        echo ::set-env name=FILE_LIST::$FILES
-        echo ::set-env name=FILE_COUNT::$FILES_C
-        echo "Found files:"
-        echo "$FILES"
+         # Using github env (newline separated file list)
+        echo 'FILE_LIST<<EOF' >> $GITHUB_ENV
+        find lib -type f -iname "*-api.yaml" -or -iname "*-api.json" >> $GITHUB_ENV
+        echo 'EOF' >> $GITHUB_ENV
+ 
     - name: Validate OpenAPI Spec (swagger-validator)
       uses: mbowman100/swagger-validator-action@master
-      if: env.FILE_COUNT != '0' # Comment out if you want it to fail if no files found
+      #if: env.FILE_COUNT != '0' # Comment out if you want it to fail if no files found
       with:
         files: ${{ env.FILE_LIST }}
     
