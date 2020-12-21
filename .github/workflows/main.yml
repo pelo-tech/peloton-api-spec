@@ -33,5 +33,5 @@ jobs:
       uses: mbowman100/swagger-validator-action@master
       #if: env.FILE_COUNT != '0' # Comment out if you want it to fail if no files found
       with:
-        files: ${{ env.FILE_LIST }}
+        files: ${{ $FILE_LIST }}
     
