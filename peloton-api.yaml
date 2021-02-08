@@ -457,6 +457,12 @@ paths:
           schema:
             type: string
           example: DovOps
+        - name: is_onboarded
+          in: query
+          schema:
+            type: string
+            example: stacked_classes
+            description: This appears to be some extra feature query to add more detail to the profile response.
       responses:
         "200":
           description: Auto generated using Swagger Inspector
@@ -568,6 +574,13 @@ paths:
         - pelotonPlatform: []
       tags:
         - users
+      parameters:
+        - name: is_onboarded
+          in: query
+          schema:
+            type: string
+            example: stacked_classes
+            description: This appears to be some extra feature query to add more detail to the profile response.
       responses:
         "200":
           description: Auto generated using Swagger Inspector
@@ -644,6 +657,131 @@ paths:
           description: Auto generated using Swagger Inspector
       tags:
         - users
+        - challenge
+  /api/user/{userId}/challenges/upcoming:
+    get:
+      description: Get list of current challenges
+      security:
+        - sessionCookie: []
+        - pelotonPlatform: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "b3f902e4b6c54777a73b61471ebed471"
+        - name: has_joined
+          in: query
+          schema:
+            type: boolean
+          example: "false"
+      responses:
+        "200":
+          description: Auto generated using Swagger Inspector
+      tags:
+        - users
+        - challenge
+  /api/user/{userId}/challenges/{challengeId}/join:
+    post:
+      description: Join a challenge
+      security:
+        - sessionCookie: []
+        - pelotonPlatform: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "b3f902e4b6c54777a73b61471ebed471"
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "4ee56696ffcb442592607af5004503e3"
+      responses:
+        "200":
+          description: Empty 200 response
+      tags:
+        - users
+        - challenge
+  /api/user/{userId}/challenges/{challengeId}/leave:
+    post:
+      description: Leave a challenge
+      security:
+        - sessionCookie: []
+        - pelotonPlatform: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "b3f902e4b6c54777a73b61471ebed471"
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "4ee56696ffcb442592607af5004503e3"
+      responses:
+        "200":
+          description: Empty 200 response
+      tags:
+        - users
+        - challenge       
+  /api/user/{userId}/challenges/{challengeId}:
+    get:
+      description: Get details for a challenge
+      security:
+        - sessionCookie: []
+        - pelotonPlatform: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "b3f902e4b6c54777a73b61471ebed471"
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "4ee56696ffcb442592607af5004503e3"
+      responses:
+        "200":
+          description: Get challenge details, summary, participants, and progress
+      tags:
+        - users
+        - challenge
+  /api/user/{userId}/challenges/{challengeId}/friends:
+    get:
+      description: Get friends list and their badges for a challenge
+      security:
+        - sessionCookie: []
+        - pelotonPlatform: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "b3f902e4b6c54777a73b61471ebed471"
+        - name: challengeId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "4ee56696ffcb442592607af5004503e3"
+      responses:
+        "200":
+          description: Get friends list and their progress in a challenge
+      tags:
+        - users
+        - challenge
   /api/user/{userId}/achievements:
     get:
       description: Auto generated using Swagger Inspector
@@ -947,7 +1085,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                $ref: "#/components/schemas/RideFilter"
       tags:
         - ride
   /api/ride/{rideId}/recent_following_workouts:
