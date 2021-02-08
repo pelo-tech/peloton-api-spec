@@ -24,9 +24,9 @@ jobs:
     - name: Get OpenAPI files
       id: getfiles
       run:  |
-         # Using github env (newline separated file list)
+        # Using github env (newline separated file list)
         echo 'FILE_LIST<<EOF' >> $GITHUB_ENV
-        find lib -type f -iname "*-api.yaml" -or -iname "*-api.json" >> $GITHUB_ENV
+        find . -type f -iname "*-api.yaml" -or -iname "*-api.json" >> $GITHUB_ENV
         echo 'EOF' >> $GITHUB_ENV
  
     - name: Validate OpenAPI Spec (swagger-validator)
