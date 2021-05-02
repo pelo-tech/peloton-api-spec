@@ -3,7 +3,7 @@
   "info" : {
     "title" : "Unofficial Peloton API",
     "description" : "This is an unofficial/unsupported peloton API that was documented through Swagger Inspector. Some URLs are protected, and you will be required to post to the Login endpoint to obtain a session ID which then gets sent in future requests as your peloton_session_id cookie.  You will also need a peloton-platform header for some of the newer requests, which for now should be set to 'web'",
-    "version" : "0.2.9"
+    "version" : "0.3.0"
   },
   "servers" : [ {
     "url" : "https://api.onepeloton.com"
@@ -1699,6 +1699,40 @@
       }
     },
     "schemas" : {
+      "HeartRateZoneDurations" : {
+        "type" : "object",
+        "properties" : {
+          "heart_rate_z1_duration" : {
+            "type" : "integer"
+          },
+          "heart_rate_z2_duration" : {
+            "type" : "integer"
+          },
+          "heart_rate_z3_duration" : {
+            "type" : "integer"
+          },
+          "heart_rate_z4_duration" : {
+            "type" : "integer"
+          },
+          "heart_rate_z5_duration" : {
+            "type" : "integer"
+          }
+        }
+      },
+      "EffortSummary" : {
+        "type" : "object",
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/HeartRateZoneDurations"
+        }, {
+          "properties" : {
+            "total_effort_points" : {
+              "type" : "number",
+              "format" : "float",
+              "example" : "35.1"
+            }
+          }
+        } ]
+      },
       "UserOverview" : {
         "type" : "object",
         "properties" : {
@@ -2413,6 +2447,13 @@
       },
       "RideDetails" : {
         "properties" : {
+          "availability" : {
+            "type" : "object",
+            "example" : {
+              "is_available" : true,
+              "reason" : null
+            }
+          },
           "class_type_ids" : {
             "type" : "array",
             "items" : {
@@ -2437,6 +2478,10 @@
             "format" : "float",
             "example" : 8.6146
           },
+          "difficulty_level" : {
+            "type" : "string",
+            "example" : "this is currently null"
+          },
           "overall_estimate" : {
             "type" : "number",
             "format" : "float",
@@ -2452,10 +2497,22 @@
             "format" : "int32",
             "example" : 1510
           },
+          "distance" : {
+            "type" : "number"
+          },
+          "distance_display_value" : {
+            "type" : "number"
+          },
+          "distance_unit" : {
+            "type" : "string"
+          },
           "duration" : {
             "type" : "number",
             "format" : "int32",
             "example" : 2700
+          },
+          "dynamic_video_recorded_speed_in_mph" : {
+            "type" : "number"
           },
           "equipment_ids" : {
             "type" : "array",
@@ -2518,9 +2575,20 @@
             "type" : "boolean",
             "example" : true
           },
+          "is_dynamic_video_eligible" : {
+            "type" : "boolean",
+            "example" : false
+          },
           "is_explicit" : {
             "type" : "boolean",
             "example" : false
+          },
+          "is_fixed_distance" : {
+            "type" : "boolean",
+            "example" : false
+          },
+          "is_ftp_test" : {
+            "type" : "boolean"
           },
           "has_free_mode" : {
             "type" : "boolean",
@@ -2547,6 +2615,10 @@
             "type" : "string",
             "example" : "5a2cd9201a494428aa0e1045ba4c7a51-live"
           },
+          "live_stream_url" : {
+            "type" : "string",
+            "format" : "url"
+          },
           "location" : {
             "type" : "string",
             "example" : "uk"
@@ -2556,7 +2628,11 @@
             "items" : {
               "type" : "string"
             },
-            "example" : [ "heart_rate", "cadence", "calories" ]
+            "example" : [ {
+              "bike" : [ "heart_rate", "cadence", "calories" ]
+            }, {
+              "tread" : [ "heart_rate", "calories", "speed", "elevation", "distance" ]
+            } ]
           },
           "original_air_time" : {
             "type" : "number",
@@ -2604,6 +2680,11 @@
             },
             "example" : [ "f10471dcd6a34e5f8ed54eb634b5df19" ]
           },
+          "sample_vod_stream_url" : {
+            "type" : "string",
+            "format" : "url",
+            "example" : "https://amd-vod.akamaized.net/vod/bike/03-2021/03062021-hannah_frankson-1200pm-drastic-1-1712d9ecaf8649cbaabf48ca12c418ab/HLS/master.m3u8"
+          },
           "scheduled_start_time" : {
             "type" : "number",
             "format" : "int64",
@@ -2644,6 +2725,11 @@
             "type" : "string",
             "example" : "5a2cd9201a494428aa0e1045ba4c7a51-vod"
           },
+          "vod_stream_url" : {
+            "type" : "string",
+            "format" : "url",
+            "example" : "https://amd-vod.akamaized.net/vod/bike/03-2021/03062021-hannah_frankson-1200pm-drastic-1-1712d9ecaf8649cbaabf48ca12c418ab/HLS/master.m3u8"
+          },
           "captions" : {
             "type" : "array",
             "items" : {
@@ -2671,6 +2757,9 @@
             "type" : "number",
             "format" : "int64",
             "example" : 1586687055
+          },
+          "effort_zones" : {
+            "$ref" : "#/components/schemas/EffortSummary"
           },
           "fitness_discipline" : {
             "type" : "string",
@@ -2725,6 +2814,22 @@
             "type" : "string",
             "example" : "Asia/Amman"
           },
+          "title" : {
+            "type" : "string",
+            "example" : "currently set to null"
+          },
+          "total_music_audio_buffer_seconds" : {
+            "type" : "number"
+          },
+          "total_music_audio_play_seconds" : {
+            "type" : "number"
+          },
+          "total_video_buffering_seconds" : {
+            "type" : "number"
+          },
+          "total_video_watch_time_seconds" : {
+            "type" : "number"
+          },
           "total_work" : {
             "type" : "number",
             "format" : "float",
@@ -2733,6 +2838,12 @@
           "user_id" : {
             "type" : "string",
             "example" : "b3f902e4b6c54777a73b61471ebed471"
+          },
+          "v2_total_video_buffering_seconds" : {
+            "type" : "number"
+          },
+          "v2_total_video_watch_time_seconds" : {
+            "type" : "number"
           },
           "workout_type" : {
             "type" : "string",
